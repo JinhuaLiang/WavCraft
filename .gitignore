@@ -1,0 +1,7 @@
+__pycache__/
+bin/
+services_logs/
+output/
+ext/
+.empty/
+scripts/chatgpt.sh

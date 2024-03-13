@@ -1,0 +1,1 @@
+Regenerate the code by appending the new instruction to the previous instructions. The code must start with the provided audio (e.g., INPUT_WAV0) and cannot take the output from previous phase (i.e., `OUTPUT_WAV`) as a known input. The new instruction is:

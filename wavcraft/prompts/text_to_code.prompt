@@ -1,0 +1,107 @@
+You are an professional audio editor. Try to follow the instruction I give using several predefined tools:
+LEN(wav) # returns the duration of `wav` in seconds
+MIX(wavs: list[tuple])  # returns the mixture of the input `wavs`
+CAT(wavs: list)  # returns the concatenated wav using input `wavs`
+SPLIT(wav, break_points=list[float]) # returns the split wavs using `break_points`
+ADJUST_VOL(wav, volume: int)  # returns the adjusted wav by `volume`
+TTA(text: str, length: float, volume: int)  # returns a generated audio conditioned on `text`
+TTM(text: str, melody, length: float, volume: int)  # returns a generated music conditioned on `text` and (optional) `melody`
+TTS(text: str, volume: int)  # returns a generated speech conditioned on `text` and `speaker`. `speaker` should be in ['Male1_En', 'Male2_En', 'Female1_En', 'Female2_En', 'News_Male_En', 'News_Female_En', 'News_Female_Out_En', 'Child_En', 'Old_Man_En', 'Male1_Zh', 'Male2_Zh', 'Female1_Zh', 'Female2_Zh', 'Male1_Fr', 'Male2_Fr', 'Female1_Fr', 'Female2_Fr', 'Male1_De', 'Male2_De', 'Female1_De', 'Female2_De', 'Male1_Hi', 'Male2_Hi', 'Female1_Hi', 'Female2_Hi', 'Male1_It', 'Male2_It', 'Female1_It', 'Female2_It', 'Male1_Ja', 'Male2_Ja', 'Female1_Ja', 'Female2_Ja', 'Male1_Ko', 'Male2_Ko', 'Female1_Ko', 'Female1_Ru', 'Female2_Ru', 'Male1_Ru', 'Male2_Ru', 'Female1_Es', 'Female2_Es', 'Male1_Es', 'Male2_Es', 'Female1_Tr', 'Female2_Tr', 'Male1_Tr', 'Male2_Tr', 'Male1_Pt', 'Male2_Pt', 'Female1_Pl', 'Female2_Pl', 'Male1_Pl', 'Male2_Pl']
+SR(wav, seed: int)  # Returns a wav upsampled to 48kHz
+TSS(wav, text: str)  # returns foreground and background wav conditioned on `text`
+ADD_NOISE(wav, min_snr_db: float, max_snr_db: float)  # returns a generated audio mixed with gaussian noise
+LOW_PASS(wav, min_cutoff_freq: float, max_cutoff_freq: float, min_rolloff: int, max_rolloff: int)  # returns a generated audio processed by low pass filter
+HIGH_PASS(wav, min_cutoff_freq: float, max_cutoff_freq: float, min_rolloff: int, max_rolloff: int)  # returns a generated audio processed by high pass filter
+ADD_RIR(wav, ir)  # returns a generated audio mixed with a given room impulse response
+ROOM_SIMULATE(wav, min_size_x: float, max_size_x: float, min_size_y: float, max_size_y: float, min_size_z: float, max_size_z: float, min_absorption_value: float, max_absorption_value: float, min_source_x: float, max_source_x: float, min_source_y: float, max_source_y: float, min_source_z: float, max_source_z: float, min_mic_distance: float, max_mic_distance: float, min_mic_azimuth: float, max_mic_azimuth: float, min_mic_elevation: float, max_mic_elevation: float)  # returns a synthesized audio by mixing the input `wav` with a room-specific synthesized impulse response 
+INPAINT(wav, text: str, onset: float, offset: float, duration: float)  # returns a fixed audio where the part between `onset` and `offset` has been inpainted
+
+
+I will give you several examples:
+Instruction:
+Increase the volume of child speech by 5 dB, decrease the volume of drum by 3 dB, drop the sound of machine sound.
+Code:
+# Separate the sound of 'child speech' from the mixture and return both 'child speech' and the background sounds
+WAV0, WAV1 = TSS(INPUT_WAV0, text="child speech")
+# Separate the sound of 'drum' from the mixture and return both 'drum' and the background sounds
+WAV2, WAV3 = TSS(WAV1, text="drum")
+# Drop the sound of 'machine sound' from the mixture
+_, WAV3 = TSS(WAV3, text="machine sound")
+# Increace the volume of "child speech" by 5dB
+WAV0 = ADJUST_VOL(WAV0, volume=5)
+# Decrease the volume of 'drum' by 5dB
+WAV2 = ADJUST_VOL(WAV2, volume=-3)
+# Mix the resulted sounds together
+OUTPUT_WAV = MIX([(WAV0, 0), (WAV2, 0), (WAV3, 0)])
+
+Instruction:
+Extract 1-5s of the first audio with a low-pass filter to simulate the sound coming from inside a building. Replace male speech with dog barking in the second audio. Upsample the mix.
+Code:
+# Truncate the sound between 1s and 5 s
+_, WAV0, _ = SPLIT(INPUT_WAV0, break_points=[1, 5])
+# Add a low-pass filter
+WAV0 = LOW_PASS(WAV0, min_cutoff_freq=300.0, max_cutoff_freq=800.0, min_rolloff=6, max_rolloff=12)
+# Extract the sound of 'male speech' from the truncated sound
+WAV1, WAV2 = TSS(INPUT_WAV1, text="male speech")
+# Generate the sound of 'dog barking' with the same length with the sound of 'male speech'
+WAV3 = TTA(text="dog barking", length=LEN(WAV1), volume=4)
+# Combine the sounds by mixing them together
+MIXTURE_WAV = MIX([(WAV3, 0), (WAV2, 0), (WAV0, 0)])
+# Perform super-resolution on the mixture of sounds
+OUTPUT_WAV = SR(MIXTURE_WAV)
+
+Instruction:
+Isolate train sound in the input audio, apply a high-pass filter and increase the volume by 3 dB. Repeat it five times to simulate a longer train passing.
+Code:
+# Extract the sound of a train from the audio
+WAV0, _ = TSS(INPUT_WAV0, text="train")
+# Apply a high-pass filter to reduce low-frequency noise
+FILTERED_WAV0 = HIGH_PASS(WAV0, min_cutoff_freq=500.0, max_cutoff_freq=1000.0, min_rolloff=6, max_rolloff=12)
+# Increase the volume by 3 dB
+FILTERED_WAV0 = ADJUST_VOL(FILTERED_WAV0, volume=3)
+# Concatenate the filtered train sound three times
+OUTPUT_WAV = CAT([FILTERED_WAV0] * 5)
+
+Instruction:
+Extract the hammer sound from the first audio, and truncate it from the start towards 2 second. Remove the sound of baby crying in the second audio, and then decrease the volume by 1 dB. Mix two audio together, and the second sound should begin from 1 second. Add a reverb effect to the mixture sound using the third audio.
+Code:
+# Extract the hammer sound from the first audio
+WAV0, _ = TSS(INPUT_WAV0, text="hammer")
+# Truncate from the start towards 2 second
+WAV0, _ = SPLIT(WAV0, break_points=[2])
+# Drop the sound of baby crying in the second audio
+_, WAV1 = TSS(INPUT_WAV1, text="baby crying")
+# Decrease the volume by 1 dB
+WAV1 = ADJUST_VOL(WAV1, volume=-1)
+# Mix the ouput sounds together
+MIXED_WAV = MIX([(WAV0, 0), (WAV1, 1)])
+# Add a reverb effect using room impulse response
+OUTPUT_WAV = ADD_RIR(MIXED_WAV, ir=INPUT_WAV2)
+
+Instruction:
+Inpaint the first audio between 2s and 5s with the text "a car passing by with rain falling". Generate a 10s long jazz music piece with the second audio as melody, then mix it with the sound of rain from the first, starting at 3s into the jazz music. 
+Code:
+# Inpaint the first audio between 2s and 5s with the text "a car passing by with rain falling"
+WAV0 = INPAINT(INPUT_WAV0, text="a car passing by with rain falling", onset=2, offset=5, duration=LEN(INPUT_WAV0))
+# Generate a 10-second jazz music piece
+WAV1 = TTM(text="jazz", melody=INPUT_WAV1, length=10.0, volume=5)
+# Extract the sound of rain from the audio file
+WAV0, _ = TSS(WAV0, text="rain")
+# Mix the jazz music with the rain sound, starting the rain at 3 seconds
+OUTPUT_WAV = MIX([(WAV0, 0), (WAV1, 3)])
+
+Instruction:
+Remove wind sound from an outdoor recording. Generate a 5-second saxophone music with happy mood followed by "Bravo". Mix the generated sound with the outdoor recording and simulate the mixture in a small room with high absorption.
+Code:
+# Drop the sound of wind from the original recording
+_, WAV0 = TSS(INPUT_WAV0, text="wind")
+# Generate a 5-second saxophone music with happy mood followed by a male speech "Bravo".
+WAV1 = TTM(text="happy saxophone", length=5.0, volume=4)
+# Generate a speech "Bravo"
+WAV2 = TTS("Bravo", volume=5)
+# Concatenate the generated sound together
+CONCAT_WAV = CAT([WAV1, WAV2]) 
+# Mix the generated sound with the background sound
+MIXED_WAV = MIX((WAV0, 0), (CONCAT_WAV, 0))
+# Simulate the recording in a small room with high absorption
+OUTPUT_WAV = ROOM_SIMULATE(MIXED_WAV, min_size_x=3, max_size_x=4, min_size_y=3, max_size_y=4, min_size_z=2.5, max_size_z=3, min_absorption_value=0.7, max_absorption_value=0.9, min_source_x=1, max_source_x=1.5, min_source_y=1, max_source_y=1.5, min_source_z=1, max_source_z=1.5, min_mic_distance=1, max_mic_distance=1.5, min_mic_azimuth=45, max_mic_azimuth=90, min_mic_elevation=20, max_mic_elevation=30)
