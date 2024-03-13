@@ -7,6 +7,7 @@ This repo currently support:
 * text-guided audio editing: edit the content of given audio clip(s) conditioned on text input
 * text-guided audio generation: create an audio clip given text input
 * audio scriptwriting: get more inspiration from WavCraft by prompting a script setting and let the model do the scriptwriting and create the sound for you.
+* check if your audio file is synthesized by WavCraft
 
 ## Content
 
@@ -56,6 +57,10 @@ python3 check_watermark.py --wav-path /path/to/audio/file
 WavCraft is an LLM-driven agent for audio content creation and editing. It applies LLM to connect various audio expert models and DSP function together. An overview of WavCraft architecture can be found bellow:
 
 \[overview](assets/overview.png)
+
+## Disclaimer
+
+This repository is for **research purpose only**. We are not responsible for audio generated/edited using semantics created by this model. Also, everyone use WavCraft must NOT disable the watermarking techniques in anyway.
 
 ## Acknowledgments
 
