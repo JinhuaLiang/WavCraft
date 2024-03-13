@@ -1,4 +1,5 @@
 # 🌊WavCraft
+
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)]()    [![demo](https://img.shields.io/badge/Notion-Demo_Page-blue)](https://first-riddle-7e9.notion.site/WavCraft-Demo-40c079fc82ca411ca0520b9d65abd3f5)
 Generate and edit the audio with a simple sentence.
 
