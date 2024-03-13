@@ -1,5 +1,5 @@
 # 🌊WavCraft
-
+[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)]()    [![demo](https://img.shields.io/badge/Notion-Demo_Page-blue)](https://first-riddle-7e9.notion.site/WavCraft-Demo-40c079fc82ca411ca0520b9d65abd3f5)
 Generate and edit the audio with a simple sentence.
 
 This repo currently support:
@@ -63,7 +63,7 @@ python3 check_watermark.py --wav-path /path/to/audio/file
 
 WavCraft is an LLM-driven agent for audio content creation and editing. It applies LLM to connect various audio expert models and DSP function together. An overview of WavCraft architecture can be found bellow:
 
-\[overview](assets/overview.png)
+![overview](assets/overview.png)
 
 ## Disclaimer
 
