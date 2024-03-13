@@ -28,6 +28,13 @@ This repo currently support:
 source scripts/setup_envs.sh
 ```
 
+## Configure environment
+
+```bash
+export OPENAI_KEY=YOUR_OPENAI_KEY
+export HF_KEY=YOUR_HF_KEY
+```
+
 ### Audio edition using a single line
 
 ```
