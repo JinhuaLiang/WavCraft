@@ -10,6 +10,7 @@ import string
 from retrying import retry
 from glob import glob
 
+from wavcraft.mistral_api import ChatMistralMoE
 import wavcraft.utils as utils
 
 
@@ -21,7 +22,13 @@ if USE_OPENAI_CACHE:
     for cache_file in glob.glob('cache/*.pkl'):
         with open(cache_file, 'rb') as file:
             openai_cache.append(pickle.load(file))
-
+USE_MISTRAL_CACHE = False
+mistral_cache = []
+if USE_MISTRAL_CACHE:
+    os.makedirs('cache', exist_ok=True)
+    for cache_file in glob.glob('cache/*.pkl'):
+        with open(cache_file, 'rb') as file:
+            mistral_cache.append(pickle.load(file))
 
 chat_history = [{
                     "role": "system",
@@ -71,6 +78,42 @@ def chat_with_gpt(api_key, model="gpt-4"):
                     })
 
     return chat['choices'][0]['message']['content']
+
+
+
+# Assuming the existence of USE_OPENAI_CACHE, chat_history, and openai_cache similar to GPT function
+def chat_with_mistral():  
+    global chat_history
+    
+    if USE_MISTRAL_CACHE:
+        filtered_object = list(filter(lambda x: x['prompt'] == chat_history[-1]["content"], openai_cache))
+        if len(filtered_object) > 0:
+            return filtered_object[0]['response']
+
+    llm = ChatMistralMoE()  
+    
+    llm.messages = chat_history
+    
+    try:
+        response = llm.get_response(chat_history[-1]["content"])
+    finally:
+        pass  
+    
+    if USE_MISTRAL_CACHE:
+        cache_obj = {
+            'prompt': chat_history[-1]["content"],
+            'response': response
+        }
+        with open(f'cache/{time.time()}.pkl', 'wb') as _openai_cache:
+            pickle.dump(cache_obj, _openai_cache)
+            openai_cache.append(cache_obj)
+
+    chat_history.append({
+        "role": "assistant",
+        "content": response,
+    })
+
+    return response
 
 
 def get_file_content(filename):
