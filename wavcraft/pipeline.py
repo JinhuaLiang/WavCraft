@@ -10,7 +10,7 @@ import string
 from retrying import retry
 from glob import glob
 
-from wavcraft.mistral_api import ChatMistralMoE
+from wavcraft.mistral_api import ChatMistralMoE, ChatMistral
 import wavcraft.utils as utils
 
 
@@ -90,7 +90,7 @@ def chat_with_mistral():
         if len(filtered_object) > 0:
             return filtered_object[0]['response']
 
-    llm = ChatMistralMoE()  
+    llm = ChatMistral()  
     
     llm.messages = chat_history
     
@@ -114,6 +114,8 @@ def chat_with_mistral():
     })
 
     return response
+
+
 
 
 def get_file_content(filename):
