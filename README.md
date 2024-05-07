@@ -11,6 +11,11 @@ This repo currently support:
 * audio scriptwriting: get more inspiration from WavCraft by prompting a script setting and let the model do the scriptwriting and create the sound for you.
 * check if your audio file is synthesized by WavCraft
 
+## Change log
+
+**2024-05-06**: Support openLLMs (MistralAI family) for WavCraft.
+**2024-03-20**: Add watermarking to the system
+
 ## Content
 
 - [Usage](##usage)
@@ -59,6 +64,14 @@ Enter your instruction (input `EXIT` to exit the process): "Add dog barking"
 
 ```
 python3 check_watermark.py --wav-path /path/to/audio/file
+```
+
+### Use openLLMs for generation/editing
+```
+python3 WavCraft.py basic -f \
+--input-wav assets/duck_quacking_in_water.wav \
+--input-text "Add dog barking." \
+--model 'mistralai/Mistral-7B-Instruct-v0.2'
 ```
 
 ## Approach
