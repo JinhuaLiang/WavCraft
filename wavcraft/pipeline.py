@@ -10,7 +10,7 @@ import string
 from retrying import retry
 from glob import glob
 
-from wavcraft.mistral_api import ChatMistralMoE, ChatMistral
+from wavcraft.mistral_api import ChatMistral
 import wavcraft.utils as utils
 
 
@@ -22,18 +22,13 @@ if USE_OPENAI_CACHE:
     for cache_file in glob.glob('cache/*.pkl'):
         with open(cache_file, 'rb') as file:
             openai_cache.append(pickle.load(file))
-USE_MISTRAL_CACHE = False
-mistral_cache = []
-if USE_MISTRAL_CACHE:
-    os.makedirs('cache', exist_ok=True)
-    for cache_file in glob.glob('cache/*.pkl'):
-        with open(cache_file, 'rb') as file:
-            mistral_cache.append(pickle.load(file))
 
-chat_history = [{
-                    "role": "system",
-                    "content": "You are a helpful assistant.",
-                }]
+
+# Global vars
+chat_history = []
+local_llm = None
+
+
 def chat_with_gpt(api_key, model="gpt-4"):
     #"gpt-4",  # "gpt-3.5-turbo"
     global chat_history
@@ -50,15 +45,6 @@ def chat_with_gpt(api_key, model="gpt-4"):
         chat = openai.ChatCompletion.create(
             model=model,
             messages=chat_history,
-            # messages=[
-            #     {
-            #         "role": "system",
-            #         "content": "You are a helpful assistant."
-            #     },
-            #     {
-            #         "role": "user",
-            #         "content": prompt
-            #     }]
         )
     finally:
         openai.api_key = ''
@@ -80,26 +66,24 @@ def chat_with_gpt(api_key, model="gpt-4"):
     return chat['choices'][0]['message']['content']
 
 
-
 # Assuming the existence of USE_OPENAI_CACHE, chat_history, and openai_cache similar to GPT function
 def chat_with_mistral():  
     global chat_history
     
-    if USE_MISTRAL_CACHE:
+    if USE_OPENAI_CACHE:
         filtered_object = list(filter(lambda x: x['prompt'] == chat_history[-1]["content"], openai_cache))
         if len(filtered_object) > 0:
             return filtered_object[0]['response']
 
-    llm = ChatMistral()  
-    
-    llm.messages = chat_history
-    
+    global local_llm 
+    # import ipdb; ipdb.set_trace()
+    local_llm.messages = chat_history[:-1]
     try:
-        response = llm.get_response(chat_history[-1]["content"])
+        response = local_llm.get_response(chat_history[-1]["content"])
     finally:
         pass  
     
-    if USE_MISTRAL_CACHE:
+    if USE_OPENAI_CACHE:
         cache_obj = {
             'prompt': chat_history[-1]["content"],
             'response': response
@@ -114,8 +98,6 @@ def chat_with_mistral():
     })
 
     return response
-
-
 
 
 def get_file_content(filename):
@@ -151,6 +133,7 @@ def try_extract_content_from_quotes(content):
         return maybe_remove_python_as_prefix(extract_substring_with_quotes(content, quotes="```")[0])
     else:
         return maybe_remove_python_as_prefix(content)
+
 
 def maybe_get_content_from_file(content_or_filename):
     if os.path.exists(content_or_filename):
@@ -191,7 +174,12 @@ def init_session(session_id=''):
 def _input_text_to_code_with_retry(log_path, api_key, model="gpt-4"):
     print("    trying ...")
     try:
-        code_response = try_extract_content_from_quotes(chat_with_gpt(api_key, model))
+        if "mistral" in model:
+            code_response = chat_with_mistral()
+        elif "gpt" in model:
+            code_response = try_extract_content_from_quotes(chat_with_gpt(api_key, model))
+        else:
+            raise ValueError(f"Do not support {model}")
 
     except Exception as err:
         global chat_history
@@ -340,5 +328,16 @@ def generate_audio(session_id, code_response):
 
 # Convenient function call used by wavjourney_cli
 def full_steps(session_id, input_wav, input_text, api_key, mode, model="gpt-4"):
+    global local_llm, chat_history
+
+    if "mistral" in model:
+        local_llm = ChatMistral(model_id=model)
+    elif "gpt" in model:
+        chat_history = [{
+            "role": "system",
+            "content": "You are a helpful assistant.",
+            }]
+    else:
+        raise ValueError(f"Not support {model}.")
     code_script = generate_code(session_id, input_wav, input_text, api_key, model=model, mode=mode)
     return generate_audio(session_id, code_script)
