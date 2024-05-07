@@ -14,6 +14,7 @@ This repo currently support:
 ## Change log
 
 **2024-05-06**: Support openLLMs (MistralAI family) for WavCraft.
+
 **2024-03-20**: Add watermarking to the system
 
 ## Content
