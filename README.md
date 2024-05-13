@@ -92,3 +92,13 @@ We appreciate [WavJourney](https://github.com/Audio-AGI/WavJourney), [AudioCraft
 ## Citing
 
 If you found our work is helpful, please cite our work:
+```
+@misc{liang2024wavcraft,
+      title={WavCraft: Audio Editing and Generation with Large Language Models}, 
+      author={Jinhua Liang and Huan Zhang and Haohe Liu and Yin Cao and Qiuqiang Kong and Xubo Liu and Wenwu Wang and Mark D. Plumbley and Huy Phan and Emmanouil Benetos},
+      year={2024},
+      eprint={2403.09527},
+      archivePrefix={arXiv},
+      primaryClass={eess.AS}
+}
+```
