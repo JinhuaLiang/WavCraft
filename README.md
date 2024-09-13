@@ -43,6 +43,12 @@ export OPENAI_KEY=YOUR_OPENAI_KEY
 export HF_KEY=YOUR_HF_KEY
 ```
 
+## Launch local deep learning models
+
+```bash
+source scripts/start_services.sh
+```
+
 ### Audio edition using a single line
 
 ```
