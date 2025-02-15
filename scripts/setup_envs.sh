@@ -4,6 +4,7 @@ conda env create -f venvs/audiosr.yml
 conda env create -f venvs/wavcraft.yml
 # Prepare third-party repos
 # Comment some of them if they are unnecessary
+mkdir ext/
 cd ext/
 
 git clone https://github.com/haoheliu/AudioLDM.git
