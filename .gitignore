@@ -2,6 +2,6 @@ __pycache__/
 bin/
 services_logs/
 output/
-ext/
+# ext/*
 .empty/
 scripts/chatgpt.sh
