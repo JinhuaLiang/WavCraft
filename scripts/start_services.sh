@@ -15,4 +15,4 @@ source services/start_audioldm.sh
 # Start WavMark service
 source services/start_wavmark.sh
 # WavCraft
-conda activate AudioEditor
+conda activate WavCraft
